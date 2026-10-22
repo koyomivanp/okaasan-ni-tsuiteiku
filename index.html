@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover"
+    />
+    <title>お母さんについていく</title>
+    <meta name="description" content="子アヒルになって、お母さんについて巣まで帰ろう。森、高速道路、人混みをぬけるスマホ向けミニゲーム。" />
+    <meta name="theme-color" content="#1d4a38" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="お母さんについていく" />
+    <meta property="og:description" content="子アヒルになって、お母さんについて巣まで帰ろう。" />
+    <meta name="twitter:card" content="summary_large_image" />
+  </head>
+  <body>
+    <div id="app">
+      <div id="frame">
+        <div id="stage"></div>
+        <header>
+          <h1>お母さんについていく</h1>
+          <p id="place">公園</p>
+          <p id="brood">きょうだい 9</p>
+          <p id="hint"></p>
+        </header>
+        <div id="controls">
+          <button type="button" id="btn-a" data-dir="left" aria-label="左">
+            <svg class="mark" viewBox="0 0 64 64" aria-hidden="true">
+              <path
+                class="arrow-fill"
+                d="M32 7.5c1.4 0 2.7.7 3.6 1.9L55.8 31.2c1.9 2.1.4 5.3-2.4 5.3H43.2V53c0 2.5-2 4.5-4.5 4.5H25.3c-2.5 0-4.5-2-4.5-4.5V36.5H10.6c-2.8 0-4.3-3.2-2.4-5.3L28.4 9.4c.9-1.2 2.2-1.9 3.6-1.9z"
+              />
+              <ellipse class="arrow-shine" cx="24.5" cy="22" rx="6.2" ry="3.4" transform="rotate(-32 24.5 22)" />
+            </svg>
+          </button>
+          <button type="button" id="btn-b" data-dir="right" aria-label="右">
+            <svg class="mark" viewBox="0 0 64 64" aria-hidden="true">
+              <path
+                class="arrow-fill"
+                d="M32 7.5c1.4 0 2.7.7 3.6 1.9L55.8 31.2c1.9 2.1.4 5.3-2.4 5.3H43.2V53c0 2.5-2 4.5-4.5 4.5H25.3c-2.5 0-4.5-2-4.5-4.5V36.5H10.6c-2.8 0-4.3-3.2-2.4-5.3L28.4 9.4c.9-1.2 2.2-1.9 3.6-1.9z"
+              />
+              <ellipse class="arrow-shine" cx="24.5" cy="22" rx="6.2" ry="3.4" transform="rotate(-32 24.5 22)" />
+            </svg>
+          </button>
+        </div>
+        <div id="start">
+          <p>黄色い子アヒル（赤いリボン）を動かして、お母さんについて巣まで帰ろう。</p>
+          <button type="button" id="begin">はじめる</button>
+        </div>
+        <div id="result" hidden>
+          <p id="message"></p>
+          <div class="result-actions">
+            <button type="button" id="copy">コピーする</button>
+            <button type="button" id="retry">もう一度</button>
+          </div>
+        </div>
+      </div>
+      <p id="turn" hidden>たてむきにして遊ぼう</p>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
