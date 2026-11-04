@@ -1,5 +1,18 @@
-import { begin, broodAlive, carsAt, childPose, createGame, hitsCar, motherPose, peopleAt, update } from "./play.ts";
+import {
+  begin,
+  bikesAt,
+  broodAlive,
+  carsAt,
+  createGame,
+  guideLateral,
+  hitsCar,
+  MOM_SPEED,
+  motherPose,
+  peopleAt,
+  update,
+} from "./play.ts";
 import { clearLateral, goal, parkGuideMax, parkGuideMin, poseAt, segmentAt } from "./route.ts";
+import { stageOf } from "./stages/index.ts";
 
 function inLane(s: number): boolean {
   const pose = poseAt(s, 0);
@@ -24,27 +37,40 @@ function carBlocked(s: number, time: number): boolean {
   return false;
 }
 
-function dodgePeople(
-  lateral: number,
-  x: number,
-  z: number,
-  time: number,
-  crowdAt: number,
-): { left: boolean; right: boolean } {
-  let steer = 0;
-  for (const person of peopleAt(time, crowdAt)) {
-    if (!person.visible) continue;
-    const ahead = person.x - x;
-    if (ahead < -0.25 || ahead > 2.6) continue;
-    if (Math.abs(person.z - z) > 0.55) continue;
-    steer = person.z >= z ? 1 : -1;
-    break;
+// Between two lanes is clear of both, so those spots count too.
+const CROWD_POCKETS = [-1.05, -0.78, -0.39, 0, 0.39, 0.78, 1.05];
+const CROWD_WALK = 1.9;
+const CROWD_STEER = 5.2;
+
+// Mom's crowd pick ignores what is in the lanes on the way; the bot also refuses a move that would
+// cross a lane just as someone arrives in it.
+function crowdAim(s: number, lateral: number, time: number, crowdAt: number): number {
+  const bodies = [
+    ...peopleAt(time, crowdAt)
+      .filter((p) => p.visible && p.fade > 0.3)
+      .map((p) => ({ s: p.s, lateral: p.lateral, speed: CROWD_WALK })),
+    ...bikesAt(time, crowdAt).filter((b) => b.visible),
+  ];
+  let best = lateral;
+  let bestScore = -Infinity;
+  for (const pocket of CROWD_POCKETS) {
+    const lo = Math.min(pocket, lateral) - 0.3;
+    const hi = Math.max(pocket, lateral) + 0.3;
+    const travel = Math.abs(pocket - lateral) / CROWD_STEER + 0.32;
+    let score = -Math.abs(pocket - lateral) * 0.8;
+    for (const body of bodies) {
+      const ahead = body.s - s;
+      if (ahead < -0.45) continue;
+      const arrive = Math.max(0, ahead) / (body.speed + MOM_SPEED);
+      if (body.lateral > lo && body.lateral < hi && arrive < travel) score -= 120;
+      if (Math.abs(body.lateral - pocket) < 0.3 && arrive < 2) score -= 60 * (1 - arrive / 2);
+    }
+    if (score > bestScore) {
+      bestScore = score;
+      best = pocket;
+    }
   }
-  if (steer === 0) {
-    if (Math.abs(lateral) < 0.2) return { left: true, right: false };
-    return { left: lateral < -0.05, right: lateral > 0.05 };
-  }
-  return { left: steer > 0, right: steer < 0 };
+  return best;
 }
 
 const game = createGame();
@@ -53,29 +79,39 @@ let momHit = false;
 const stops: number[] = [];
 let waiting = false;
 let prev = game.momS;
-for (let i = 0; i < 28000 && game.phase === "play"; i++) {
+for (let i = 0; i < 60000 && game.phase === "play"; i++) {
   const seg = segmentAt(game.childS).id;
   const gap = game.momS - game.childS;
   const crossing = seg === "road";
-  const kid = childPose(game);
   const parkAim = clearLateral(game.childS + 0.85, game.lateral, 0.24, parkGuideMin, parkGuideMax);
-  const dodge =
+  const aim =
     seg === "crowd"
-      ? dodgePeople(game.lateral, kid.x, kid.z, game.time, game.crowdAt)
-      : seg === "park"
-        ? { left: parkAim > game.lateral + 0.06, right: parkAim < game.lateral - 0.06 }
-        : { left: game.lateral < -0.08, right: game.lateral > 0.08 };
+      ? crowdAim(game.childS, game.lateral, game.time, game.crowdAt)
+      : guideLateral(game.childS, game.lateral, game.time, game.crowdAt);
+  // Aim just past where the brake will stop the chick (half the brake time at the current speed).
+  const ahead = game.lateral + game.lateralVel * 0.085;
+  const dodge =
+    seg === "park"
+      ? { left: parkAim > ahead + 0.06, right: parkAim < ahead - 0.06 }
+      : seg === "walk"
+        ? { left: aim > ahead + 0.04, right: aim < ahead - 0.04 }
+        : seg === "crowd" || stageOf(seg)
+        ? { left: aim > ahead + 0.04, right: aim < ahead - 0.04 }
+        : { left: ahead < -0.08, right: ahead > 0.08 };
   const blocked = crossing && carBlocked(game.childS, game.time);
   const commit = crossing && game.roadSpeed > 0.35 && inLane(game.childS);
   const go = crossing && (commit || (!blocked && gap > 0.45));
   const tap = crossing && waiting && !go && i % 30 === 0;
+  // Go/stop stages: dash whenever mom's rule says it is safe, otherwise wait.
+  const holdHere = stageOf(seg)?.hold;
+  const wait = holdHere ? holdHere(game.childS, game.time) : false;
   update(
     game,
     {
       left: crossing ? false : dodge.left,
       right: crossing ? false : dodge.right,
-      forward: go || tap,
-      back: crossing && !go && !tap,
+      forward: holdHere ? !wait : go || tap,
+      back: holdHere ? wait : crossing && !go && !tap,
     },
     1 / 60,
   );

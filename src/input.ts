@@ -41,18 +41,10 @@ export function bindInput(
 
   return {
     labels(): void {
-      if (mode() !== "longitudinal") {
-        buttonA.dataset.dir = "left";
-        buttonB.dataset.dir = "right";
-        buttonA.setAttribute("aria-label", "左");
-        buttonB.setAttribute("aria-label", "右");
-        return;
-      }
-      const forwardOnRight = roadFlip() < 0.5;
-      buttonA.dataset.dir = forwardOnRight ? "down" : "up";
-      buttonB.dataset.dir = forwardOnRight ? "up" : "down";
-      buttonA.setAttribute("aria-label", forwardOnRight ? "戻る" : "進む");
-      buttonB.setAttribute("aria-label", forwardOnRight ? "進む" : "戻る");
+      buttonA.dataset.dir = "left";
+      buttonB.dataset.dir = "right";
+      buttonA.setAttribute("aria-label", "左");
+      buttonB.setAttribute("aria-label", "右");
     },
     read(): FrameInput {
       const left = held.a || down("arrowleft");

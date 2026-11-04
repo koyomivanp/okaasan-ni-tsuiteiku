@@ -120,9 +120,9 @@ export class Duck {
     this.object.scale.setScalar(scale);
   }
 
-  update(distanceDelta: number, flight: number, glance = 0, dt = 1 / 60): void {
+  update(distanceDelta: number, flight: number, glance = 0, dt = 1 / 60, huddle = 0): void {
     const scale = this.object.scale.x || 1;
-    const moving = Math.abs(distanceDelta) > 0.0004 && flight <= 0;
+    const moving = Math.abs(distanceDelta) > 0.0004 && flight <= 0 && huddle <= 0;
     if (moving) this.walked += distanceDelta / scale;
 
     const phase = ((this.walked / this.stepLength) % 1 + 1) % 1;
@@ -135,6 +135,15 @@ export class Duck {
     const turn = 1 - Math.exp(-Math.max(0, dt) / 0.14);
     this.glance += (glance - this.glance) * turn;
     this.head.rotation.y = this.glance * 2.35;
+
+    if (huddle > 0) {
+      this.rig.position.y = -0.035 * huddle;
+      this.rig.rotation.x = 0.22 * huddle;
+      this.rig.rotation.z = Math.sin(glance * 3) * 0.04 * huddle;
+      this.head.rotation.x = 0.28 * huddle;
+    } else {
+      this.rig.rotation.x = 0;
+    }
 
     if (!moving) {
       this.leftFoot.position.set(-0.09, 0.03, 0.02);

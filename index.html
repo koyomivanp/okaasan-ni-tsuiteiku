@@ -2,16 +2,24 @@
 <html lang="ja">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&text=%E5%B8%B0%E5%B7%A3%E6%9C%AC%E8%83%BD&display=swap"
+      rel="stylesheet"
+    />
     <meta
       name="viewport"
       content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover"
     />
-    <title>お母さんについていく</title>
-    <meta name="description" content="子アヒルになって、お母さんについて巣まで帰ろう。森、高速道路、人混みをぬけるスマホ向けミニゲーム。" />
-    <meta name="theme-color" content="#1d4a38" />
+    <title>帰巣本能</title>
+    <meta property="og:image" content="https://koyomivanp.github.io/okaasan-ni-tsuiteiku/og.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="description" content="子アヒルになって、お母さんについて巣まで帰ろう。森、高速道路、人混み、樹海と洞窟、海、砂漠とピラミッドをぬけてオアシスをめざすスマホ向けミニゲーム。" />
+    <meta name="theme-color" content="#f6a55c" />
     <meta property="og:type" content="website" />
-    <meta property="og:title" content="お母さんについていく" />
+    <meta property="og:title" content="帰巣本能" />
     <meta property="og:description" content="子アヒルになって、お母さんについて巣まで帰ろう。" />
     <meta name="twitter:card" content="summary_large_image" />
   </head>
@@ -20,9 +28,9 @@
       <div id="frame">
         <div id="stage"></div>
         <header>
-          <h1>お母さんについていく</h1>
+          <h1>帰巣本能</h1>
           <p id="place">公園</p>
-          <p id="brood">きょうだい 9</p>
+          <p id="brood">残機 9</p>
           <p id="hint"></p>
         </header>
         <div id="controls">
@@ -46,13 +54,29 @@
           </button>
         </div>
         <div id="start">
-          <p>黄色い子アヒル（赤いリボン）を動かして、お母さんについて巣まで帰ろう。</p>
-          <button type="button" id="begin">はじめる</button>
+          <div class="logo" aria-label="帰巣本能">
+            <span>帰</span><span>巣</span><span>本</span><span>能</span>
+          </div>
+          <p>巣まで帰らなきゃ</p>
+          <div class="start-actions">
+            <button type="button" data-begin>はい</button>
+            <button type="button" data-begin>いいえ</button>
+          </div>
+        </div>
+        <div id="home" hidden>
+          <p class="home-logo">帰巣本能</p>
+          <p class="home-title">巣まで帰れた！</p>
+          <p id="home-stars" aria-label="評価"></p>
+          <p id="home-stats"></p>
+          <div class="result-actions">
+            <button type="button" id="home-copy">SNSで自慢する</button>
+            <button type="button" id="home-retry">はじめから</button>
+          </div>
         </div>
         <div id="result" hidden>
           <p id="message"></p>
           <div class="result-actions">
-            <button type="button" id="copy">コピーする</button>
+            <button type="button" id="copy">SNSで自慢する</button>
             <button type="button" id="retry">もう一度</button>
           </div>
         </div>

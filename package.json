@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "probe": "node --experimental-strip-types src/trip-probe.ts"
   },
   "devDependencies": {
     "@types/three": "^0.186.0",
