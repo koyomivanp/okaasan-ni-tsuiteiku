@@ -8,6 +8,7 @@ import { makeWater } from "./stages/water.ts";
 import { Duck } from "./duck.ts";
 import { makeVehicle } from "./vehicle.ts";
 import { bindInput } from "./input.ts";
+import { stopTracking, track } from "./metrics.ts";
 import { sound, unlockSound } from "./sound.ts";
 import { stageOf } from "./stages/index.ts";
 import { kingAnxious, kingCaged, kingFight, kingRush, leapAmount, leapTarget } from "./stages/king.ts";
@@ -731,7 +732,7 @@ function resetCamera(): void {
   Object.assign(cameraBlend, snapShotBlend(game.childS, game.curbUsed, game.lateral));
 }
 
-const heard = { alive: BROOD_COUNT, phase: game.phase };
+const heard = { alive: BROOD_COUNT, phase: game.phase, checkpoint: game.checkpoint };
 
 // Where the walk puts mom and the chicks. The ending takes over from this once they are home.
 function syncDucks(dt: number): void {
@@ -906,11 +907,20 @@ function sync(dt: number): void {
   if (alive < heard.alive && game.phase === "play") sound.peep();
   if (game.phase !== heard.phase) {
     if (game.phase === "yeet" || (game.phase === "result" && heard.phase === "play")) {
-      if (!game.success) sound.fail();
+      if (game.success) {
+        track("clear");
+      } else {
+        sound.fail();
+        const where = segmentAt(game.childS).id;
+        track(`fail/${where}`);
+        if (!canContinue(game)) track(`gameover/${where}`);
+      }
     }
   }
+  if (game.checkpoint !== heard.checkpoint && game.checkpoint !== "park") track(`reach/${game.checkpoint}`);
   heard.alive = alive;
   heard.phase = game.phase;
+  heard.checkpoint = game.checkpoint;
   input.labels();
   const showing = game.phase === "result" && !game.success;
   result.hidden = !showing;
@@ -925,6 +935,7 @@ beginButtons.forEach((button) =>
     unlockSound();
     sound.tap();
     everStarted = true;
+    track("start");
     begin(game);
     // Dev only: ?stage=cave starts from that stage's checkpoint, for trying one stage at a time.
     const jump = import.meta.env.DEV ? new URLSearchParams(location.search).get("stage") : null;
@@ -953,6 +964,7 @@ warpStops().forEach((stop, index) => {
     unlockSound();
     sound.tap();
     everStarted = true;
+    stopTracking();
     warpTo(game, stop.id);
     resetCamera();
     start.hidden = true;
@@ -985,6 +997,7 @@ window.addEventListener("keydown", (event) => {
 const again = () => {
   unlockSound();
   sound.tap();
+  track("retry");
   retry(game);
   resetCamera();
   result.hidden = true;
@@ -994,6 +1007,7 @@ homeRetry.addEventListener("click", again);
 
 const share = async (button: HTMLButtonElement) => {
   sound.tap();
+  track("share");
   const where = game.success ? "" : `（${placeName(game)}）`;
   const url = location.origin + location.pathname;
   const count = game.success ? "" : ` きょうだい ${broodAlive(game)}羽`;
@@ -1031,6 +1045,7 @@ if (import.meta.env.DEV) Object.assign(window, { __debug: { ...(window as unknow
 
 resize();
 window.addEventListener("resize", resize);
+track("open");
 
 let last = performance.now();
 function tick(now: number): void {
